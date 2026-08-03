@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mobile EHS Site Visit Checklist (Sorted by E, H, S)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SheetJS (xlsx) CDN for client-side formatted Excel generation -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col pb-24">
+
+    <!-- Header / Navbar -->
+    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-30 border-b border-slate-800">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2.5">
+                <div class="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center text-white font-black text-lg shadow-inner">
+                    EHS
+                </div>
+                <div>
+                    <h1 class="text-base font-black leading-tight tracking-tight">Site Visit Checklist</h1>
+                    <p class="text-[11px] text-emerald-400 font-medium">Sorted by E, H & S Categories</p>
+                </div>
+            </div>
+            
+            <button id="openSettingsBtn" class="bg-slate-800 hover:bg-slate-700 text-slate-200 p-2 rounded-xl border border-slate-700 text-xs transition flex items-center space-x-1.5">
+                <i class="fa-solid fa-cloud-gear text-emerald-400"></i>
+                <span class="hidden sm:inline font-semibold">OneDrive Link</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Mobile Container -->
+    <main class="max-w-5xl mx-auto px-3 sm:px-4 py-4 flex-grow w-full space-y-4">
+        
+        <!-- Header Info Card (Site, Location, Date, GSC Member) -->
+        <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200">
+            <h2 class="text-xs font-black text-slate-400 uppercase tracking-wider mb-3 flex items-center space-x-1.5">
+                <i class="fa-solid fa-id-card text-emerald-600"></i>
+                <span>1. Site Visit Details</span>
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Site Name *</label>
+                    <input type="text" id="siteName" placeholder="e.g. Plant Site A" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-slate-50" required>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Location *</label>
+                    <input type="text" id="locationName" placeholder="e.g. Hyderabad" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-slate-50" required>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">GSC Member *</label>
+                    <input type="text" id="gscMember" placeholder="e.g. Auditor Name" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-slate-50" required>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Visit Date</label>
+                    <input type="date" id="visitDate" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-slate-50">
+                </div>
+            </div>
+        </div>
+
+        <!-- Overall Progress Header -->
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+            <div class="flex justify-between items-center mb-2">
+                <div class="flex items-center space-x-2">
+                    <span id="syncBadge" class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                    <span class="text-xs font-bold text-slate-700">Audit Completion</span>
+                </div>
+                <div class="text-xs font-black text-slate-800">
+                    <span id="answeredCount" class="text-emerald-600 font-extrabold text-sm">0</span> / 67 Checkpoints (<span id="percentageText">0%</span>)
+                </div>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden border border-slate-200">
+                <div id="progressBar" class="bg-emerald-600 h-full transition-all duration-300" style="width: 0%;"></div>
+            </div>
+        </div>
+
+        <!-- E, H, S Sorted Category Navigation Bar (Sticky Tabs) -->
+        <div class="sticky top-14 z-20 bg-slate-100/90 backdrop-blur-md pt-2 pb-1">
+            <div class="grid grid-cols-3 gap-2 bg-slate-200 p-1.5 rounded-2xl border border-slate-300/80 shadow-inner">
+                <button type="button" id="tab-E" onclick="switchCategory('E')" class="py-2.5 px-2 rounded-xl text-xs font-bold transition flex flex-col sm:flex-row items-center justify-center space-y-0.5 sm:space-y-0 sm:space-x-1.5 bg-white text-emerald-800 shadow-sm border border-emerald-300">
+                    <i class="fa-solid fa-leaf text-emerald-600 text-sm"></i>
+                    <span>Environment (E)</span>
+                    <span id="badge-E" class="bg-emerald-100 text-emerald-800 text-[10px] px-1.5 py-0.2 rounded-full font-extrabold">0/13</span>
+                </button>
+                <button type="button" id="tab-H" onclick="switchCategory('H')" class="py-2.5 px-2 rounded-xl text-xs font-bold transition flex flex-col sm:flex-row items-center justify-center space-y-0.5 sm:space-y-0 sm:space-x-1.5 text-slate-600 hover:text-slate-800">
+                    <i class="fa-solid fa-heart-pulse text-purple-600 text-sm"></i>
+                    <span>Health (H)</span>
+                    <span id="badge-H" class="bg-purple-100 text-purple-800 text-[10px] px-1.5 py-0.2 rounded-full font-extrabold">0/21</span>
+                </button>
+                <button type="button" id="tab-S" onclick="switchCategory('S')" class="py-2.5 px-2 rounded-xl text-xs font-bold transition flex flex-col sm:flex-row items-center justify-center space-y-0.5 sm:space-y-0 sm:space-x-1.5 text-slate-600 hover:text-slate-800">
+                    <i class="fa-solid fa-user-shield text-blue-600 text-sm"></i>
+                    <span>Safety (S)</span>
+                    <span id="badge-S" class="bg-blue-100 text-blue-800 text-[10px] px-1.5 py-0.2 rounded-full font-extrabold">0/33</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Category Description Banner -->
+        <div id="categoryBanner" class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 flex justify-between items-center text-xs">
+            <div>
+                <h3 id="categoryTitle" class="font-black text-emerald-950 text-sm">Environment Checkpoints (E)</h3>
+                <p id="categorySubtitle" class="text-[11px] text-emerald-800 mt-0.5">Air, Water, Material & Waste, and Energy Conservation (13 Checkpoints)</p>
+            </div>
+            <span id="categoryCountBadge" class="bg-emerald-200 text-emerald-900 px-3 py-1 rounded-xl font-bold text-xs">13 Items</span>
+        </div>
+
+        <!-- Form and Checkpoints List -->
+        <form id="checklistForm" class="space-y-3.5">
+            <div id="checkpointsContainer" class="space-y-3">
+                <!-- Checkpoints dynamically injected -->
+            </div>
+        </form>
+
+    </main>
+
+    <!-- Mobile Fixed Bottom Action Bar -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 p-3 z-40 shadow-lg">
+        <div class="max-w-5xl mx-auto flex justify-between items-center gap-2">
+            <button type="button" id="prevCatBtn" onclick="navigatePrevCategory()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-xs font-bold transition disabled:opacity-30">
+                <i class="fa-solid fa-chevron-left mr-1"></i> Prev
+            </button>
+            
+            <div class="text-center text-[11px] font-bold text-slate-500 hidden sm:block">
+                Category <span id="currentCatText" class="text-slate-800 font-extrabold">1 of 3</span>
+            </div>
+
+            <button type="button" id="nextCatBtn" onclick="navigateNextCategory()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition shadow-sm">
+                Next <i class="fa-solid fa-chevron-right ml-1"></i>
+            </button>
+
+            <button type="button" id="submitFormBtn" onclick="handleFormSubmit()" class="hidden bg-emerald-700 hover:bg-emerald-800 text-white px-5 py-2.5 rounded-xl text-xs font-black shadow-md transition items-center space-x-1.5">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <span>Submit & Sync to OneDrive</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl text-center space-y-4">
+            <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-3xl">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <h3 class="text-xl font-black text-slate-800">Audit Completed & Pushed!</h3>
+            <p class="text-xs text-slate-600">The EHS checklist (sorted by Environment, Health, Safety) has been generated into a formatted Excel sheet.</p>
+            
+            <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-xs text-left space-y-1.5 text-slate-700">
+                <div class="flex justify-between border-b border-slate-200 pb-1.5 font-bold">
+                    <span>Formatted Excel:</span>
+                    <span id="createdFileName" class="text-emerald-700 truncate max-w-[180px]">EHS_Report.xlsx</span>
+                </div>
+                <div class="flex justify-between pt-1">
+                    <span>OneDrive Sync:</span>
+                    <span id="oneDriveSyncResult" class="font-bold text-emerald-600">Pushed via Backend Link</span>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-2 pt-2">
+                <button id="downloadExcelBtn" onclick="downloadExcelFile()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 rounded-xl font-bold text-xs transition flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-file-excel text-base"></i>
+                    <span>Download Excel (.xlsx)</span>
+                </button>
+                <button onclick="resetForm()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 py-2.5 px-4 rounded-xl font-bold text-xs transition">
+                    Start New Site Audit
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Backend OneDrive Configuration Modal -->
+    <div id="settingsModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+                <h3 class="text-base font-bold text-slate-800 flex items-center space-x-2">
+                    <i class="fa-solid fa-cloud-arrow-up text-emerald-600"></i>
+                    <span>Backend OneDrive Link Config</span>
+                </h3>
+                <button onclick="closeSettings()" class="text-slate-400 hover:text-slate-600 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3 text-xs text-slate-600">
+                <p>You can set or update your **OneDrive Webhook / Power Automate Link** directly here or in `config.js` in the backend code:</p>
+                <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 space-y-2">
+                    <label class="font-bold text-slate-800 text-xs block">Backend OneDrive Webhook URL</label>
+                    <textarea id="webhookUrlInput" rows="3" placeholder="https://prod-xx.westus.logic.azure.com/..." class="w-full p-2.5 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none font-mono"></textarea>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-2 pt-2">
+                <button onclick="saveSettings()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs transition">
+                    Save Link & Apply Backend Settings
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
