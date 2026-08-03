@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mobile EHS Site Visit Checklist (Sorted by E, H, S)</title>
+    <title>Mobile EHS Site Visit Checklist (Executive Styled Excel Export)</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- SheetJS (xlsx) CDN for client-side formatted Excel generation -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- xlsx-js-style CDN for Full Client-Side Cell Styling (Fills, Fonts, Borders, Alignments) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
     <!-- FontAwesome icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
@@ -23,13 +23,13 @@
                 </div>
                 <div>
                     <h1 class="text-base font-black leading-tight tracking-tight">Site Visit Checklist</h1>
-                    <p class="text-[11px] text-emerald-400 font-medium">Sorted by E, H & S Categories</p>
+                    <p class="text-[11px] text-emerald-400 font-medium">Sorted by E, H & S &bull; Styled Excel Export</p>
                 </div>
             </div>
             
             <button id="openSettingsBtn" class="bg-slate-800 hover:bg-slate-700 text-slate-200 p-2 rounded-xl border border-slate-700 text-xs transition flex items-center space-x-1.5">
                 <i class="fa-solid fa-cloud-gear text-emerald-400"></i>
-                <span class="hidden sm:inline font-semibold">OneDrive Link</span>
+                <span class="hidden sm:inline font-semibold">OneDrive Settings</span>
             </button>
         </div>
     </header>
@@ -41,7 +41,7 @@
         <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200">
             <h2 class="text-xs font-black text-slate-400 uppercase tracking-wider mb-3 flex items-center space-x-1.5">
                 <i class="fa-solid fa-id-card text-emerald-600"></i>
-                <span>1. Site Visit Details</span>
+                <span>1. Site Visit Metadata</span>
             </h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                 <div>
@@ -68,7 +68,7 @@
             <div class="flex justify-between items-center mb-2">
                 <div class="flex items-center space-x-2">
                     <span id="syncBadge" class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
-                    <span class="text-xs font-bold text-slate-700">Audit Completion</span>
+                    <span class="text-xs font-bold text-slate-700">Audit Completion Progress</span>
                 </div>
                 <div class="text-xs font-black text-slate-800">
                     <span id="answeredCount" class="text-emerald-600 font-extrabold text-sm">0</span> / 67 Checkpoints (<span id="percentageText">0%</span>)
@@ -135,7 +135,7 @@
 
             <button type="button" id="submitFormBtn" onclick="handleFormSubmit()" class="hidden bg-emerald-700 hover:bg-emerald-800 text-white px-5 py-2.5 rounded-xl text-xs font-black shadow-md transition items-center space-x-1.5">
                 <i class="fa-solid fa-cloud-arrow-up"></i>
-                <span>Submit & Sync to OneDrive</span>
+                <span>Submit & Export Styled Excel</span>
             </button>
         </div>
     </div>
@@ -144,41 +144,41 @@
     <div id="successModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl text-center space-y-4">
             <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-3xl">
-                <i class="fa-solid fa-circle-check"></i>
+                <i class="fa-solid fa-file-excel"></i>
             </div>
-            <h3 class="text-xl font-black text-slate-800">Audit Completed & Pushed!</h3>
-            <p class="text-xs text-slate-600">The EHS checklist (sorted by Environment, Health, Safety) has been generated into a formatted Excel sheet.</p>
+            <h3 class="text-xl font-black text-slate-800">Styled Excel Generated!</h3>
+            <p class="text-xs text-slate-600">Your EHS site audit has been compiled into a styled, publication-grade Excel report.</p>
             
             <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-xs text-left space-y-1.5 text-slate-700">
                 <div class="flex justify-between border-b border-slate-200 pb-1.5 font-bold">
-                    <span>Formatted Excel:</span>
-                    <span id="createdFileName" class="text-emerald-700 truncate max-w-[180px]">EHS_Report.xlsx</span>
+                    <span>Styled File Name:</span>
+                    <span id="createdFileName" class="text-emerald-700 truncate max-w-[180px]">EHS_Styled_Report.xlsx</span>
                 </div>
                 <div class="flex justify-between pt-1">
                     <span>OneDrive Sync:</span>
-                    <span id="oneDriveSyncResult" class="font-bold text-emerald-600">Pushed via Backend Link</span>
+                    <span id="oneDriveSyncResult" class="font-bold text-emerald-600">Pushed to Backend Link</span>
                 </div>
             </div>
 
             <div class="flex flex-col gap-2 pt-2">
                 <button id="downloadExcelBtn" onclick="downloadExcelFile()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 rounded-xl font-bold text-xs transition flex items-center justify-center space-x-2">
-                    <i class="fa-solid fa-file-excel text-base"></i>
-                    <span>Download Excel (.xlsx)</span>
+                    <i class="fa-solid fa-download text-base"></i>
+                    <span>Download Styled Excel (.xlsx)</span>
                 </button>
                 <button onclick="resetForm()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 py-2.5 px-4 rounded-xl font-bold text-xs transition">
-                    Start New Site Audit
+                    Start New Audit
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Backend OneDrive Configuration Modal -->
+    <!-- Settings Modal -->
     <div id="settingsModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
             <div class="flex justify-between items-center pb-2 border-b border-slate-100">
                 <h3 class="text-base font-bold text-slate-800 flex items-center space-x-2">
                     <i class="fa-solid fa-cloud-arrow-up text-emerald-600"></i>
-                    <span>Backend OneDrive Link Config</span>
+                    <span>Backend OneDrive Settings</span>
                 </h3>
                 <button onclick="closeSettings()" class="text-slate-400 hover:text-slate-600 text-lg">
                     <i class="fa-solid fa-xmark"></i>
@@ -186,16 +186,16 @@
             </div>
 
             <div class="space-y-3 text-xs text-slate-600">
-                <p>You can set or update your **OneDrive Webhook / Power Automate Link** directly here or in `config.js` in the backend code:</p>
+                <p>Configure your Power Automate / OneDrive Webhook link directly below or in `config.js`:</p>
                 <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 space-y-2">
-                    <label class="font-bold text-slate-800 text-xs block">Backend OneDrive Webhook URL</label>
+                    <label class="font-bold text-slate-800 text-xs block">OneDrive Webhook URL</label>
                     <textarea id="webhookUrlInput" rows="3" placeholder="https://prod-xx.westus.logic.azure.com/..." class="w-full p-2.5 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none font-mono"></textarea>
                 </div>
             </div>
 
             <div class="flex justify-end space-x-2 pt-2">
                 <button onclick="saveSettings()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs transition">
-                    Save Link & Apply Backend Settings
+                    Save Configuration
                 </button>
             </div>
         </div>
